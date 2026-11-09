@@ -1,0 +1,2361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewerTab</title>
+
+    <style>
+        [data-theme="navy"] {
+            --bg: rgb(33, 33, 72);
+            --bg2: rgb(46, 46, 105);
+            --h1: rgb(165, 165, 225);
+            --font: white;
+            --family: Arial;
+            --borderRadius: 16px;
+            --gap: 12px;
+            --select: rgb(0, 145, 189);
+        }
+
+        [data-theme="terminal"] {
+            --bg: black;
+            --bg2: rgb(30, 30, 30);
+            --h1: rgb(0, 255, 0);
+            --font: rgb(0, 255, 0);
+            --family: monospace;
+            --borderRadius: 0px;
+            --gap: 12px;
+            --select: white;
+        }
+
+        [data-theme="amberTerminal"] {
+            --bg: black;
+            --bg2: rgb(30, 30, 30);
+            --h1: #ffb000;
+            --font: #ffb000;
+            --family: monospace;
+            --borderRadius: 0px;
+            --gap: 12px;
+            --select: white;
+        }
+
+        [data-theme="sunset"] {
+            --bg: rgb(43, 24, 36);
+            --bg2: rgb(79, 41, 57);
+            --h1: rgb(255, 154, 98);
+            --font: rgb(255, 232, 214);
+            --family: Georgia, serif;
+            --borderRadius: 16px;
+            --gap: 12px;
+            --select: rgb(255, 214, 153);
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--font);
+            font-family: var(--family);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            min-height: 100vh;
+        }
+
+        #info {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* #timeCont {
+        } */
+
+        #bigTime {
+            font-size: 50px;
+        }
+
+        #shortcuts {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .shortcut {
+            border: 2px solid var(--h1);
+            padding: 5px;
+            border-radius: var(--borderRadius);
+            background-color: var(--bg2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shortcut:hover {
+            border-color: var(--select);
+        }
+
+        .shortcut img {
+            display: block;
+            border-radius: var(--borderRadius);
+        }
+
+        #center {
+            width: clamp(300px, 50vw, 800px);
+            max-width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 2;
+        }
+
+        input {
+            color: var(--font);
+            font-family: var(--family);
+        }
+
+        #searchInput {
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+            border: 2px solid var(--h1);
+            padding: 20px;
+            font-size: 30px;
+            border-radius: var(--borderRadius);
+            background-color: var(--bg2);
+            color: var(--font);
+            font-family: var(--family);
+        }
+
+        #searchInput:hover, #searchInput:focus {
+            outline: none;
+            border: 2px solid var(--select);
+        }
+
+        #searchBottom {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px 20px;
+            margin-top: 15px;
+        }
+
+        #searchBottom div {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #searchBottom select,
+        #searchBottom button {
+            white-space: nowrap;
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+            padding: 10px 20px;
+            background: var(--bg2);
+            color: var(--font);
+            font-family: inherit;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #searchBottom select {
+            padding-right: 30px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        #searchBottom button:hover,
+        #searchBottom select:hover {
+            border-color: var(--select);
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: "▼";
+            font-size: 12px;
+            position: absolute;
+            right: 15px; 
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none; 
+        }
+
+        .widget-grid {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            table-layout: fixed;
+            border-collapse: collapse;
+            border-spacing: 0;
+            z-index: 1;
+        }
+
+        .widget-grid td {
+            padding: 0px;
+            border: none;
+            position: relative;
+        }
+
+        .widget-inner {
+            position: absolute;
+            inset: calc(var(--gap) / 2);
+            box-sizing: border-box;
+            padding: 10px;
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+            background: var(--bg2);
+            overflow: hidden;
+        }
+
+        .widget-inner button {
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+            background: var(--bg);
+            color: var(--font);
+
+            min-width: 0;
+            padding: 4px 6px;
+            font: inherit;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .widget-inner .buttons {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+
+        .widget-inner button, .widget-inner input {
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+            background: var(--bg);
+            color: var(--font);
+            padding: 5px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        button:hover {
+            cursor: pointer;
+        }
+
+        .task-check {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            margin: 0 8px 0 0;
+            border: 1px solid var(--h1);
+            border-radius: 4px;
+            background: var(--bg2);
+            cursor: pointer;
+            vertical-align: middle;
+            position: relative;
+            transition: background 0.15s;
+        }
+
+        .task-check:checked {
+            background: var(--h1);
+        }
+
+        /* .task-check:checked::after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: -1px;
+            width: 5px;
+            height: 10px;
+            border: solid var(--bg2);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        } */
+
+        .task-check:focus-visible {
+            outline: 2px solid var(--h1);
+            outline-offset: 2px;
+        }
+
+        #top {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        #settingsOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #settingsOverlay[hidden] {
+            display: none;
+        }
+
+        #settings {
+            box-sizing: border-box;
+            width: min(600px, 90vw);
+            height: 50vh;
+            padding: 20px;
+            overflow-y: auto;
+            background: var(--bg2);
+            color: var(--font);
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+        }
+
+        #notch {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 14px;
+            font-size: 18px;
+            background: var(--bg2);
+            border: 2px solid var(--h1);
+            border-top: none;
+            border-radius: 0 0 var(--borderRadius) var(--borderRadius);
+        }
+
+        #settingsButton {
+            box-sizing: border-box;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            line-height: 1;
+            border: 2px solid var(--h1);
+            border-radius: calc(var(--borderRadius) / 2);
+            background: var(--bg);
+            color: var(--font);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #settingsButton:hover, button:hover, input:hover {
+            border-color: var(--select);
+        }
+
+        .color-change-highlight:hover {
+            color: var(--select) !important;
+        }
+
+        #themeSelector {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+        }
+
+        .themeSelectorTheme {
+            flex: 1;
+            box-sizing: border-box;
+            height: 15vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--bg);
+            color: var(--font);
+            font-family: var(--family);
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+            cursor: pointer;
+        }
+
+        .themeSelectorTheme .swatch {
+            width: 60%;
+            height: 20px;
+            background: var(--bg2);
+            border: 1px solid var(--h1);
+            border-radius: calc(var(--borderRadius) / 2);
+        }
+
+        .themeSelectorTheme:hover {
+            border-color: var(--select);
+        }
+
+        .themeSelectorTheme.selected {
+            outline: 2px solid var(--select);
+            outline-offset: 2px;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+        }
+
+        textarea {
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+            padding: 5px;
+            background-color: var(--bg);
+            color: var(--font);
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            height: 20vh;
+            resize: vertical;
+        }
+
+        .flex-row button {
+            border: 2px solid var(--h1);
+            border-radius: var(--borderRadius);
+            padding: 5px;
+            background-color: var(--bg);
+            color: var(--font)
+        }
+    </style>
+</head>
+<body>
+    <div id="center">
+        <div id="info">
+            <div id="timeCont">
+                <span id="bigTime">0:00</span>
+                <span id="timeHalf">None</span>
+            </div>
+            <div id="dateInfo">
+                <div id="weekDay">None</div>
+                <div id="dateReadable">None None</div>
+                <div id="dateNumbers">None/None/None</div>
+            </div>
+        </div>
+        
+        <div id="centerSearch">
+            <form id="searchForm">
+                <input id="searchInput" autofocus>
+                <div id="searchBottom">
+                    <div>
+                        <div class="select-wrapper">
+                            <select id="searchEngines">
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <button>Search</button>
+                        <button type="button" onclick="inNewTab();">Search in new tab</button>
+                        <button type="button" id="firstResultBtn" onclick="firstResult();">First Result</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div id="shortcuts">
+        </div>
+    </div>
+
+    <div id="top">
+        <div id="notch">
+            <div id="settingsButton">⚙︎</div>
+            <div id="topTime">0:00 PM</div>
+        </div>
+    </div>
+
+    <div id="settingsOverlay" hidden>
+        <div id="settings">
+            <h1>Settings</h1>
+
+            <h2>Theme</h2>
+            <div id="themeSelector"></div>
+
+            <h2>Export</h2>
+            <textarea id="export"></textarea>
+            <div class="flex-row">
+                <button id="exportCopy">Copy</button>
+            </div>
+
+            <h2>Import</h2>
+            <textarea id="import"></textarea>
+            <div class="flex-row">
+                <button id="importButton">Import</button>
+                <span id="importMessage"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchForm = document.getElementById("searchForm");
+        const searchInput = document.getElementById("searchInput");
+
+        const bigTime = document.getElementById("bigTime");
+        const weekDay = document.getElementById("weekDay");
+        const dateReadable = document.getElementById("dateReadable");
+        const dateNumbers = document.getElementById("dateNumbers");
+        const timeHalf = document.getElementById("timeHalf");
+
+        const searchEnginesSelect = document.getElementById("searchEngines");
+        const firstResultBtn = document.getElementById("firstResultBtn");
+
+        const shortcutsBox = document.getElementById("shortcuts");
+
+        const settingsButton = document.getElementById("settingsButton");
+        const settingsOverlay = document.getElementById("settingsOverlay");
+        const settings = document.getElementById("settings");
+        const themeSelector = document.getElementById("themeSelector");
+
+        const topTime = document.getElementById("topTime");
+        const exportElem = document.getElementById("export");
+        const exportCopy = document.getElementById("exportCopy");
+
+        const importElem = document.getElementById("import");
+        // const importPaste = document.getElementById("importPaste");
+        const importButton = document.getElementById("importButton");
+        const importMessage = document.getElementById("importMessage");
+
+        function copy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                const msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Fallback: Copying text command was ' + msg);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        exportElem.addEventListener("keypress", (e) => {
+            e.preventDefault();
+        })
+
+        exportCopy.addEventListener("click", () => {
+            copy(exportElem.value);
+            exportCopy.innerText = "Copied!";
+            setInterval(() => { exportCopy.innerText = "Copy" }, 600);
+        })
+
+        function validateImport(data) {
+            if (!data || typeof data !== "object" || Array.isArray(data)) {
+                return "Expected a settings object.";
+            }
+
+            const c = data.config;
+            if (c === undefined) return null; // falls back to BASE_CONFIG
+
+            if (!c || typeof c !== "object") return "config must be an object.";
+            if (!c.grid || typeof c.grid !== "object") return "config.grid is missing.";
+            if (!Array.isArray(c.widgets)) return "config.widgets must be an array.";
+            if (!Array.isArray(c.shortcuts)) return "config.shortcuts must be an array.";
+            if (c.theme && !themes[c.theme]) return `Unknown theme: ${c.theme}`;
+
+            for (const w of c.widgets) {
+                if (!WIDGETS[w.type]) return `Unknown widget type: ${w.type}`;
+                if (!Array.isArray(w.pos) || !Array.isArray(w.size)) {
+                    return `Widget "${w.type}" needs pos and size arrays.`;
+                }
+            }
+            return null;
+        }
+
+        importButton.addEventListener("click", () => {
+            let data;
+            try {
+                data = JSON.parse(importElem.value);
+            } catch (e) {
+                importMessage.textContent = "Invalid JSON: " + e.message;
+                return;
+            }
+
+            const error = validateImport(data);
+            if (error) {
+                importMessage.textContent = error;
+                return;
+            }
+
+            if (!confirm("Replace all current settings with the imported data?")) return;
+
+            frozen = true; // stop background writes from clobbering the import
+            localStorage.setItem(STATE_KEY, JSON.stringify(data));
+            location.reload();
+        });
+
+        var grid = null;
+        
+        const searchEngines = {
+            google: {
+                name: "Google",
+                search: { path: "https://www.google.com/search", searchParam: "q" },
+                lucky: q => `https://www.google.com/search?q=${encodeURIComponent(q)}&btnI=1`
+            },
+            duckduckgo: {
+                name: "DuckDuckGo",
+                search: { path: "https://duckduckgo.com/", searchParam: "q" },
+            },
+            wikipedia: {
+                name: "Wikipedia",
+                search: { path: "https://en.wikipedia.org/w/index.php", searchParam: "search" },
+                lucky: q => `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(q)}&go=Go`
+            },
+            bing: {
+                name: "Bing",
+                search: {
+                    path: "https://www.bing.com/search",
+                    searchParam: "q"
+                }
+            },
+            brave: {
+                name: "Brave Search",
+                search: {
+                    path: "https://search.brave.com/search",
+                    searchParam: "q"
+                }
+            },
+            yahoo: {
+                name: "Yahoo",
+                search: {
+                    path: "https://search.yahoo.com/search",
+                    searchParam: "p"
+                }
+            },
+            perplexity: {
+                name: "Perplexity",
+                search: {
+                    path: "https://www.perplexity.ai/search",
+                    searchParam: "q"
+                }
+            },
+            youtube: {
+                name: "YouTube",
+                search: {
+                    path: "https://www.youtube.com/results",
+                    searchParam: "search_query"
+                }
+            },
+            github: {
+                name: "GitHub",
+                search: {
+                    path: "https://github.com/search",
+                    searchParam: "q"
+                }
+            },
+            stackoverflow: {
+                name: "Stack Overflow",
+                search: {
+                    path: "https://stackoverflow.com/search",
+                    searchParam: "q"
+                }
+            },
+            reddit: {
+                name: "Reddit",
+                search: {
+                    path: "https://www.reddit.com/search/",
+                    searchParam: "q"
+                }
+            },
+            amazon: {
+                name: "Amazon",
+                search: {
+                    path: "https://www.amazon.com/s",
+                    searchParam: "k"
+                }
+            },
+            ebay: {
+                name: "eBay",
+                search: {
+                    path: "https://www.ebay.com/sch/i.html",
+                    searchParam: "_nkw"
+                }
+            },
+            npm: {
+                name: "npm",
+                search: {
+                    path: "https://www.npmjs.com/search",
+                    searchParam: "q"
+                }
+            },
+            mdn: {
+                name: "MDN Web Docs",
+                search: {
+                    path: "https://developer.mozilla.org/en-US/search",
+                    searchParam: "q"
+                }
+            }
+        }
+
+        const themes = {
+            navy: "Navy",
+            sunset: "Sunset",
+            terminal: "Terminal",
+            amberTerminal: "Amber Terminal"
+        };
+
+        var widgets = {};
+
+        function setSpan(x, y, w, h, on) {
+            var td = queryGrid(x, y);
+            if (td) {
+                td.colSpan = on ? w : 1;
+                td.rowSpan = on ? h : 1;
+            }
+
+            for (var dx = 0; dx < w; dx++) {
+                for (var dy = 0; dy < h; dy++) {
+                    if (dx === 0 && dy === 0) continue;
+                    var covered = queryGrid(x + dx, y + dy);
+                    if (covered) covered.style.display = on ? "none" : "";
+                }
+            }
+        }
+
+        const STATE_KEY = "newerTabState";
+
+        function loadState() {
+            try {
+                return JSON.parse(localStorage.getItem(STATE_KEY)) || {};
+            } catch {
+                return {};
+            }
+        }
+
+        function exportState() {
+            exportElem.value = JSON.stringify(state, null, 4);
+        }
+
+        // function saveState(s) {
+        //     exportState();
+        //     localStorage.setItem(STATE_KEY, JSON.stringify(s));
+        // }
+
+        function getPath(obj, path) {
+            return path.split(".").reduce((o, k) => o?.[k], obj);
+        }
+
+        const listeners = new Map();
+
+        function onPropChange(path, cb) {
+            if (!listeners.has(path)) listeners.set(path, new Set());
+            listeners.get(path).add(cb);
+            return () => listeners.get(path)?.delete(cb);
+        }
+
+        function notify(oldSnap) {
+            for (const [path, cbs] of listeners) {
+                const oldVal = getPath(oldSnap, path);
+                if (JSON.stringify(oldVal) === JSON.stringify(getPath(raw, path))) continue;
+
+                const newVal = getPath(state, path);
+                for (const cb of [...cbs]) cb(newVal, oldVal, path);
+            }
+        }
+
+        const raw = loadState();
+        let lastJSON = JSON.stringify(raw);
+        let flushScheduled = false;
+
+        let frozen = false;
+
+        function flush() {
+            if (frozen) return;
+            flushScheduled = false;
+            const json = JSON.stringify(raw);
+            if (json === lastJSON) return;
+
+            const oldSnap = JSON.parse(lastJSON);
+            lastJSON = json;
+            localStorage.setItem(STATE_KEY, json);
+            exportState();
+            notify(oldSnap);
+        }
+
+        function scheduleFlush() {
+            if (flushScheduled) return;
+            flushScheduled = true;
+            queueMicrotask(flush);
+        }
+
+        function watch(obj) {
+            return new Proxy(obj, {
+                get(t, p, r) {
+                    const v = Reflect.get(t, p, r);
+                    return typeof v === "object" && v !== null ? watch(v) : v;
+                },
+                set(t, p, v, r) {
+                    const ok = Reflect.set(t, p, v, r);
+                    scheduleFlush();
+                    return ok;
+                },
+                deleteProperty(t, p) {
+                    const ok = Reflect.deleteProperty(t, p);
+                    scheduleFlush();
+                    return ok;
+                }
+            });
+        }
+
+        const state = watch(raw);
+
+        exportState();
+
+        window.addEventListener("storage", (e) => {
+            if (e.key !== null && e.key !== STATE_KEY) return;
+
+            const oldSnap = JSON.parse(lastJSON);
+            const fresh = loadState();
+
+            for (const k of Object.keys(raw)) delete raw[k];
+            Object.assign(raw, fresh);
+
+            lastJSON = JSON.stringify(raw);
+            notify(oldSnap);
+        });
+
+        function canPlace(widget, x, y) {
+            var gw = state.config.grid.width || 10;
+            var gh = state.config.grid.height || 6;
+            if (x < 0 || y < 0 || x + widget.width > gw || y + widget.height > gh) return false;
+
+            for (var other of Object.values(widgets)) {
+                if (other === widget || !other.el) continue;
+                var overlaps =
+                    x < other.x + other.width && x + widget.width > other.x &&
+                    y < other.y + other.height && y + widget.height > other.y;
+                if (overlaps) return false;
+            }
+            return true;
+        }
+
+        function setTableHighlight(v) {
+            for (var i of grid.querySelectorAll("td")) {
+                i.style.border = v ? "1px solid gray" : "none";
+            }
+        }
+
+        function putWidgetAt(id, x, y) {
+            var widget = widgets[id];
+            if (!widget) return;
+            if (!canPlace(widget, x, y)) return;
+
+            if (widget.el) {
+                setSpan(widget.x, widget.y, widget.width, widget.height, false);
+            }
+
+            var newTd = queryGrid(x, y);
+            if (!newTd) return;
+
+            setSpan(x, y, widget.width, widget.height, true);
+            widget.x = x;
+            widget.y = y;
+
+            if (!widget.el) {
+                var inner = document.createElement("div");
+                inner.className = "widget-inner";
+                inner.draggable = true;
+                inner.dataset.widgetId = id;
+
+                inner.addEventListener("dragstart", (event) => {
+                    event.dataTransfer.setData("text/plain", id);
+                    event.dataTransfer.effectAllowed = "move";
+                    inner.style.opacity = "0.5";
+                    setTableHighlight(true);
+                });
+
+                inner.addEventListener("dragend", () => {
+                    inner.style.opacity = "";
+                    setTableHighlight(false);
+                });
+
+                widget.el = inner;
+            }
+
+            newTd.appendChild(widget.el);
+            return newTd;
+        }
+
+        function makeWidget(type, x = 0, y = 0, width = 2, height = 2) {
+            var id = String(Math.round(Math.random() * (10 ** 12)));
+
+            widgets[id] = { id, type, x, y, width, height, visible: true };
+
+            var cell = putWidgetAt(id, x, y);
+
+            return cell;
+        }
+
+        function addStyle(id, css) {
+            if (document.getElementById(id)) return;
+            const el = document.createElement("style");
+            el.id = id;
+            el.textContent = css;
+            document.head.appendChild(el);
+        }
+
+        function beep() {
+            var snd = new Audio("data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vmz+Zt//+mm3Wm3Q576v////+32///5/EOgAAADVghQAAAAA//uQZAUAB1WI0PZugAAAAAoQwAAAEk3nRd2qAAAAACiDgAAAAAAABCqEEQRLCgwpBGMlJkIz8jKhGvj4k6jzRnqasNKIeoh5gI7BJaC1A1AoNBjJgbyApVS4IDlZgDU5WUAxEKDNmmALHzZp0Fkz1FMTmGFl1FMEyodIavcCAUHDWrKAIA4aa2oCgILEBupZgHvAhEBcZ6joQBxS76AgccrFlczBvKLC0QI2cBoCFvfTDAo7eoOQInqDPBtvrDEZBNYN5xwNwxQRfw8ZQ5wQVLvO8OYU+mHvFLlDh05Mdg7BT6YrRPpCBznMB2r//xKJjyyOh+cImr2/4doscwD6neZjuZR4AgAABYAAAABy1xcdQtxYBYYZdifkUDgzzXaXn98Z0oi9ILU5mBjFANmRwlVJ3/6jYDAmxaiDG3/6xjQQCCKkRb/6kg/wW+kSJ5//rLobkLSiKmqP/0ikJuDaSaSf/6JiLYLEYnW/+kXg1WRVJL/9EmQ1YZIsv/6Qzwy5qk7/+tEU0nkls3/zIUMPKNX/6yZLf+kFgAfgGyLFAUwY//uQZAUABcd5UiNPVXAAAApAAAAAE0VZQKw9ISAAACgAAAAAVQIygIElVrFkBS+Jhi+EAuu+lKAkYUEIsmEAEoMeDmCETMvfSHTGkF5RWH7kz/ESHWPAq/kcCRhqBtMdokPdM7vil7RG98A2sc7zO6ZvTdM7pmOUAZTnJW+NXxqmd41dqJ6mLTXxrPpnV8avaIf5SvL7pndPvPpndJR9Kuu8fePvuiuhorgWjp7Mf/PRjxcFCPDkW31srioCExivv9lcwKEaHsf/7ow2Fl1T/9RkXgEhYElAoCLFtMArxwivDJJ+bR1HTKJdlEoTELCIqgEwVGSQ+hIm0NbK8WXcTEI0UPoa2NbG4y2K00JEWbZavJXkYaqo9CRHS55FcZTjKEk3NKoCYUnSQ0rWxrZbFKbKIhOKPZe1cJKzZSaQrIyULHDZmV5K4xySsDRKWOruanGtjLJXFEmwaIbDLX0hIPBUQPVFVkQkDoUNfSoDgQGKPekoxeGzA4DUvnn4bxzcZrtJyipKfPNy5w+9lnXwgqsiyHNeSVpemw4bWb9psYeq//uQZBoABQt4yMVxYAIAAAkQoAAAHvYpL5m6AAgAACXDAAAAD59jblTirQe9upFsmZbpMudy7Lz1X1DYsxOOSWpfPqNX2WqktK0DMvuGwlbNj44TleLPQ+Gsfb+GOWOKJoIrWb3cIMeeON6lz2umTqMXV8Mj30yWPpjoSa9ujK8SyeJP5y5mOW1D6hvLepeveEAEDo0mgCRClOEgANv3B9a6fikgUSu/DmAMATrGx7nng5p5iimPNZsfQLYB2sDLIkzRKZOHGAaUyDcpFBSLG9MCQALgAIgQs2YunOszLSAyQYPVC2YdGGeHD2dTdJk1pAHGAWDjnkcLKFymS3RQZTInzySoBwMG0QueC3gMsCEYxUqlrcxK6k1LQQcsmyYeQPdC2YfuGPASCBkcVMQQqpVJshui1tkXQJQV0OXGAZMXSOEEBRirXbVRQW7ugq7IM7rPWSZyDlM3IuNEkxzCOJ0ny2ThNkyRai1b6ev//3dzNGzNb//4uAvHT5sURcZCFcuKLhOFs8mLAAEAt4UWAAIABAAAAAB4qbHo0tIjVkUU//uQZAwABfSFz3ZqQAAAAAngwAAAE1HjMp2qAAAAACZDgAAAD5UkTE1UgZEUExqYynN1qZvqIOREEFmBcJQkwdxiFtw0qEOkGYfRDifBui9MQg4QAHAqWtAWHoCxu1Yf4VfWLPIM2mHDFsbQEVGwyqQoQcwnfHeIkNt9YnkiaS1oizycqJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZB4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU=");  
+            snd.play().catch(e => console.warn("beep blocked:", e));
+        }
+
+        var spotifyApiPromise = null;
+        function loadSpotifyApi() {
+            if (spotifyApiPromise) return spotifyApiPromise;
+            spotifyApiPromise = new Promise(resolve => {
+                window.onSpotifyIframeApiReady = resolve;
+                var s = document.createElement("script");
+                s.src = "https://open.spotify.com/embed/iframe-api/v1";
+                s.async = true;
+                document.head.appendChild(s);
+            });
+            return spotifyApiPromise;
+        }
+        
+        var cm = null;
+
+        function hideContextMenu() {
+            if (cm) {
+                cm.remove();
+                cm = null;
+            }
+        }
+
+        function showContextMenu(options, x, y) {
+            hideContextMenu();
+
+            var menu = document.createElement("div");
+            menu.style.cssText = `
+                position: fixed;
+                z-index: 100000;
+                display: flex;
+                flex-direction: column;
+                background: var(--bg2);
+                border: 1px solid var(--h1);
+                border-radius: var(--borderRadius);
+                overflow: hidden;
+            `;
+
+            for (const [label, handler] of options) {
+                const item = document.createElement("button");
+                item.innerHTML = label;
+                item.style.cssText = `
+                    background: transparent;
+                    color: var(--font);
+                    border: none;
+                    padding: 8px 14px;
+                    font: inherit;
+                    text-align: left;
+                    cursor: pointer;
+                `;
+                item.addEventListener("mouseenter", () => item.style.background = "var(--bg)");
+                item.addEventListener("mouseleave", () => item.style.background = "transparent");
+                item.addEventListener("click", () => {
+                    handler();
+                    hideContextMenu();
+                });
+                menu.appendChild(item);
+            }
+
+            document.querySelector("body").appendChild(menu);
+
+            const r = menu.getBoundingClientRect();
+            menu.style.left = Math.min(x, window.innerWidth - r.width) + "px";
+            menu.style.top = Math.min(y, window.innerHeight - r.height) + "px";
+
+            cm = menu;
+        }
+
+        document.addEventListener("pointerdown", (e) => {
+            if (cm && !cm.contains(e.target)) hideContextMenu();
+            if (settings && !settings.contains(e.target)) closeSettings();
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") hideContextMenu();
+            if (e.key === "Escape") closeSettings();
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.key === "/") { e.preventDefault(); searchInput.focus(); }
+            if (e.key === ",") openSettings();
+        });
+
+        window.addEventListener("blur", hideContextMenu);
+
+        const WIDGETS = {
+            clock: (x, y, w, h) => {
+                const SVG_NS = "http://www.w3.org/2000/svg";
+
+                function makeClockHand(svg, length, width, color) {
+                    var hand = document.createElementNS(SVG_NS, "line");
+                    hand.setAttribute("x1", 50);
+                    hand.setAttribute("y1", 50);
+                    hand.setAttribute("x2", 50);
+                    hand.setAttribute("y2", 50 - length);
+                    hand.setAttribute("stroke", color);
+                    hand.setAttribute("stroke-width", width);
+                    hand.setAttribute("stroke-linecap", "round");
+                    svg.appendChild(hand);
+                    return hand;
+                }
+
+                var cell = makeWidget("clock", x, y, w, h);
+                var inner = cell.querySelector(".widget-inner");
+
+                var clockSvg = document.createElementNS(SVG_NS, "svg");
+                clockSvg.setAttribute("viewBox", "0 0 100 100");
+                clockSvg.style.width = "100%";
+                clockSvg.style.height = "100%";
+
+                clockSvg.style.color = "var(--font)";
+                clockSvg.innerHTML = `<circle cx="50" cy="50" r="45" stroke-width="2"
+                    style="fill: var(--bg); stroke: var(--h1)" />`;
+
+
+                for (var i = 0; i < 12; i++) {
+                    var tick = document.createElementNS(SVG_NS, "line");
+                    tick.setAttribute("x1", 50);
+                    tick.setAttribute("y1", 8);
+                    tick.setAttribute("x2", 50);
+                    tick.setAttribute("y2", i % 3 === 0 ? 14 : 11);
+                    tick.setAttribute("stroke", "currentColor");
+                    tick.setAttribute("stroke-width", i % 3 === 0 ? 2 : 1);
+                    tick.setAttribute("transform", `rotate(${i * 30} 50 50)`);
+                    clockSvg.appendChild(tick);
+                }
+
+                var hoursHand   = makeClockHand(clockSvg, 24, 3.5, "currentColor");
+                var minutesHand = makeClockHand(clockSvg, 36, 2.5, "currentColor");
+                var secondsHand = makeClockHand(clockSvg, 40, 1, "var(--select)");
+
+                inner.appendChild(clockSvg);
+
+                function updateClock() {
+                    var now = new Date();
+                    var s = now.getSeconds() + now.getMilliseconds() / 1000;
+                    var m = now.getMinutes() + s / 60;
+                    var h = (now.getHours() % 12) + m / 60;
+
+                    secondsHand.setAttribute("transform", `rotate(${s * 6} 50 50)`);
+                    minutesHand.setAttribute("transform", `rotate(${m * 6} 50 50)`);
+                    hoursHand.setAttribute("transform", `rotate(${h * 30} 50 50)`);
+                }
+                updateClock();
+                setInterval(updateClock, 100);
+
+                return cell;
+            },
+            timer: (x, y, w, h) => {
+                var cell = makeWidget("timer", x, y, w, h);
+                var inner = cell.querySelector(".widget-inner");
+                inner.style.display = "flex";
+                inner.style.flexDirection = "column";
+                inner.style.alignItems = "center";
+                inner.style.justifyContent = "space-evenly";
+
+                if (!state.timer) {
+                    state.timer = { paused: true, timeLeft: 0, timeSet: "1:00" };
+                }
+
+                function formatTimeLeft(total) {
+                    total = Math.max(0, Math.ceil(total));
+                    var hrs = Math.floor(total / 3600);
+                    var min = Math.floor(total / 60) % 60;
+                    var sec = total % 60;
+                    var pad = n => String(n).padStart(2, "0");
+
+                    if (hrs > 0) return `${hrs}:${pad(min)}:${pad(sec)}`;
+                    if (min > 0) return `${min}:${pad(sec)}`;
+                    return `${sec}`;
+                }
+
+                function parseTime(t) {
+                    var [s, m, h] = String(t).split(":").map(e => Number(e)).reverse();
+                    return (s || 0) + (m || 0) * 60 + (h || 0) * 3600;
+                }
+
+                var buttons = document.createElement("div");
+                buttons.style.display = "flex";
+                buttons.style.flexDirection = "column";
+                buttons.style.width = "100%";
+                buttons.style.gap = "10px";
+
+                var time = document.createElement("div");
+
+                var startButton = document.createElement("button");
+                startButton.style.flex = "1";
+
+                var resetButton = document.createElement("button");
+                resetButton.innerText = "Reset";
+                resetButton.style.flex = "1";
+
+                var timeInput = document.createElement("input");
+                timeInput.placeholder = "1:00";
+
+                function updateDisplay() {
+                    startButton.innerText = state.timer.paused ? "Start" : "Pause";
+                    startButton.hidden = !!state.timer.done;
+                    resetButton.hidden = state.timer.timeLeft <= 0 && !state.timer.done;
+                    timeInput.hidden = state.timer.timeLeft > 0 || !!state.timer.done;
+
+                    var shown = state.timer.done
+                        ? 0
+                        : state.timer.timeLeft > 0
+                            ? state.timer.timeLeft
+                            : (parseTime(state.timer.timeSet) || 60);
+                    time.textContent = formatTimeLeft(shown);
+                }
+
+                startButton.addEventListener("click", () => {
+                    if (state.timer.timeLeft <= 0) state.timer.timeLeft = parseTime(state.timer.timeSet) || 60;
+                    state.timer.paused = !state.timer.paused;
+                    updateDisplay();
+                });
+
+                var beeping;
+
+                resetButton.addEventListener("click", () => {
+                    state.timer.done = false;
+                    clearInterval(beeping);
+                    state.timer.paused = true;
+                    state.timer.timeLeft = 0;
+                    updateDisplay();
+                });
+
+                timeInput.addEventListener("input", () => {
+                    state.timer.timeSet = timeInput.value;
+                    console.log(state.timer.timeSet);
+                    updateDisplay();
+                })
+
+                var last = Date.now();
+                setInterval(() => {
+                    var now = Date.now();
+                    var elapsed = (now - last) / 1000;
+                    last = now;
+
+                    if (state.timer.paused || state.timer.timeLeft <= 0) return;
+
+                    var left = state.timer.timeLeft - elapsed;
+                    if (left <= 0) {
+                        state.timer.timeLeft = 0;
+                        state.timer.paused = true;
+                        state.timer.done = true;
+
+                        clearInterval(beeping);
+                        var count = 0;
+                        beep();
+                        beeping = setInterval(() => {
+                            beep();
+                            if (++count >= 20) clearInterval(beeping);
+                        }, 500);
+                    } else {
+                        state.timer.timeLeft = left;
+                    }
+                }, 250);
+
+                onPropChange("timer.timeLeft", updateDisplay);
+                onPropChange("timer.paused", updateDisplay);
+                onPropChange("timer.done", updateDisplay);
+                onPropChange("timer.timeSet", () => {
+                    timeInput.value = state.timer.timeSet;
+                });
+
+                buttons.appendChild(startButton);
+                buttons.appendChild(resetButton);
+                buttons.appendChild(timeInput);
+                
+                inner.appendChild(time);
+                inner.appendChild(buttons);
+
+                updateDisplay();
+            },
+            weather: async (x, y, w, h) => {
+                var cell = makeWidget("weather", x, y, w, h);
+                var inner = cell.querySelector(".widget-inner");
+                inner.style.display = "flex";
+                inner.style.justifyContent = "space-evenly";
+
+                function makeStat(label) {
+                    var box = document.createElement("div");
+                    box.style.display = "flex";
+                    box.style.flexDirection = "column";
+                    box.style.alignItems = "center";
+
+                    var value = document.createElement("div");
+
+                    var name = document.createElement("div");
+                    name.textContent = label;
+                    name.style.fontSize = "11px";
+                    name.style.opacity = "0.7";
+
+                    box.appendChild(value);
+                    box.appendChild(name);
+                    return { box, value };
+                }
+
+                if (!state.weather) {
+                    state.weather = {};
+                }
+
+                var weatherInfo = document.createElement("div");
+                weatherInfo.style.display = "flex";
+                weatherInfo.style.flexDirection = "column";
+                weatherInfo.style.alignItems = "center";
+                weatherInfo.style.justifyContent = "space-evenly";
+                weatherInfo.style.height = "100%";
+
+                var forecast = document.createElement("table");
+
+                forecast.innerHTML = "Loading...";
+
+                var temperature = document.createElement("div");
+                temperature.style.fontSize = "20px";
+                
+                var condition = document.createElement("div");
+
+                var info = document.createElement("div");
+                info.style.display = "flex";
+                info.style.flexDirection = "row";
+                info.style.gap = "10px";
+
+                var feelsLikeStat = makeStat("Feels like");
+                var bull = document.createElement("div");
+                bull.textContent = "•";
+                var humidityStat = makeStat("Humidity");
+
+                info.appendChild(feelsLikeStat.box);
+                info.appendChild(bull);
+                info.appendChild(humidityStat.box);
+
+                weatherInfo.appendChild(temperature);
+                weatherInfo.appendChild(condition);
+                weatherInfo.appendChild(info);
+
+                inner.appendChild(weatherInfo);
+                inner.appendChild(forecast);
+
+                function updateDisplay() {
+                    var d = state.weather.data;
+                    if (!d) {
+                        temperature.textContent = failCount > 0 ? "Weather unavailable, retrying..." : "Loading...";
+                        condition.textContent = "";
+                        humidityStat.value.textContent = "";
+                        feelsLikeStat.value.textContent = "";
+                        return;
+                    }
+                    updateForecast(d);
+
+                    temperature.textContent = `${d.temp}°`;
+                    condition.textContent = d.condition;
+                    humidityStat.value.textContent = `${d.humidity}%`;
+                    feelsLikeStat.value.textContent = `${d.feelsLike}°`;
+                }
+
+                function makeCell(text) {
+                    var el = document.createElement("td");
+                    el.textContent = text;
+                    return el;
+                }
+
+                function updateForecast(d) {
+                    forecast.innerHTML = "<tr><th>Day</th><th>Hi</th><th>Lo</th><th>%</th></tr>";
+                    forecast.style.fontSize = "13px";
+                    forecast.style.borderCollapse = "collapse";
+
+                    for (var day of d.forecast || []) {
+                        var row = document.createElement("tr");
+
+                        var name = new Date(day.date + "T00:00")
+                            .toLocaleDateString("en-US", { weekday: "short" });
+
+                        row.appendChild(makeCell(name));
+                        row.appendChild(makeCell(`${day.high}°`));
+                        row.appendChild(makeCell(`${day.low}°`));
+                        row.appendChild(makeCell(`${day.rain}%`));
+
+                        row.firstChild.style.textAlign = "left";
+                        for (var i = 1; i < row.children.length; i++) {
+                            row.children[i].style.textAlign = "right";
+                            row.children[i].style.paddingLeft = "8px";
+                        }
+
+                        forecast.appendChild(row);
+                    }
+                }
+
+                async function geocode(city) {
+                    var [name, qualifier] = city.split(",").map(s => s.trim());
+                    var url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=10&language=en&format=json`;
+
+                    var res = await fetch(url);
+                    if (!res.ok) throw new Error(`Geocoding failed: ${res.status}`);
+                    var data = await res.json();
+                    if (!data.results?.length) throw new Error(`No match for "${city}"`);
+
+                    var q = qualifier?.toLowerCase();
+                    var match = q
+                        ? data.results.find(r =>
+                            r.admin1?.toLowerCase().startsWith(q) ||
+                            r.country_code?.toLowerCase() === q ||
+                            r.country?.toLowerCase().startsWith(q))
+                        : null;
+
+                    return match || data.results[0];
+                }
+
+                 const WEATHER_CODES = {
+                    0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast",
+                    45: "Fog", 48: "Fog",
+                    51: "Light drizzle", 53: "Drizzle", 55: "Heavy drizzle",
+                    61: "Light rain", 63: "Rain", 65: "Heavy rain",
+                    71: "Light snow", 73: "Snow", 75: "Heavy snow", 77: "Snow grains",
+                    80: "Showers", 81: "Showers", 82: "Heavy showers",
+                    85: "Snow showers", 86: "Heavy snow showers",
+                    95: "Thunderstorm", 96: "Thunderstorm, hail", 99: "Thunderstorm, hail"
+                };
+
+                function getPosition() {
+                    return Promise.race([
+                        new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                maximumAge: 30 * 60 * 1000,
+                                timeout: 10000
+                            });
+                        }),
+                        new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error("geolocation timeout")), 8000))
+                    ]);
+                }
+
+                const COORDS_MAX_AGE = 1 * 60 * 60 * 1000;
+                const FAIL_COOLDOWN = 2 * 60 * 1000;
+                const MAX_AGE = 10 * 60 * 1000;
+
+                async function getIpPosition() {
+                    var res = await fetch("https://get.geojs.io/v1/ip/geo.json");
+                    if (!res.ok) throw new Error(`IP lookup failed: ${res.status}`);
+                    var data = await res.json();
+                    return { latitude: Number(data.latitude), longitude: Number(data.longitude) };
+                }
+
+                async function getCoords() {
+                    var cached = state.weather.coords;
+                    if (cached && Date.now() - cached.fetchedAt < COORDS_MAX_AGE) return cached;
+
+                    var coords;
+                    try {
+                        var position = await getPosition();
+                        coords = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            source: "gps"
+                        };
+                    } catch (error) {
+                        console.warn(error.code === 1 ? "Location permission denied, using IP" : error);
+                        coords = { ...(await getIpPosition()), source: "ip" };
+                    }
+
+                    coords.fetchedAt = Date.now();
+                    state.weather.coords = coords;
+                    return coords;
+                }
+
+                async function getWeather() {
+                    try {
+                        var { latitude, longitude, source } = await getCoords();
+
+                        var params = new URLSearchParams({
+                            latitude,
+                            longitude,
+                            current: "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m",
+                            daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+                            temperature_unit: "fahrenheit",
+                            wind_speed_unit: "mph",
+                            timezone: "auto",
+                            forecast_days: 5
+                        });
+
+                        var res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+                        if (!res.ok) throw new Error(`Forecast failed: ${res.status}`);
+                        var data = await res.json();
+                        var c = data.current;
+
+                        var dd = data.daily;
+                        var days = dd.time.map((date, i) => ({
+                            date,
+                            high: Math.round(dd.temperature_2m_max[i]),
+                            low: Math.round(dd.temperature_2m_min[i]),
+                            rain: dd.precipitation_probability_max[i],
+                            condition: WEATHER_CODES[dd.weather_code[i]] || "Unknown"
+                        }));
+
+
+                        return {
+                            latitude,
+                            longitude,
+                            source,
+                            temp: Math.round(c.temperature_2m),
+                            feelsLike: Math.round(c.apparent_temperature),
+                            humidity: c.relative_humidity_2m,
+                            wind: Math.round(c.wind_speed_10m),
+                            condition: WEATHER_CODES[c.weather_code] || "Unknown",
+                            forecast: days,
+                            fetchedAt: Date.now()
+                        };
+                    } catch (error) {
+                        console.warn(error);
+                        return null;
+                    }
+                }
+
+                var d = state.weather.data;
+                var recentlyFailed = state.weather.lastFail && Date.now() - state.weather.lastFail < FAIL_COOLDOWN;
+                var stale = !d || Date.now() - d.fetchedAt > MAX_AGE;
+
+                var failCount = 0;
+                var refreshing = false;
+                var retryTimer = null;
+
+                function isStale() {
+                    var d = state.weather.data;
+                    return !d || !d.forecast || Date.now() - d.fetchedAt > MAX_AGE;
+                }
+
+                function scheduleRetry() {
+                    clearTimeout(retryTimer);
+
+                    var delay = Math.min(5000 * 2 ** (failCount - 1), 60000);
+                    retryTimer = setTimeout(refresh, delay);
+                }
+
+                async function refresh() {
+                    if (refreshing) return;
+                    refreshing = true;
+                    try {
+                        var d = await getWeather();
+                        if (d) {
+                            state.weather.data = d;
+                            failCount = 0;
+                            clearTimeout(retryTimer);
+                        } else {
+                            failCount++;
+                            scheduleRetry();
+                        }
+                    } finally {
+                        refreshing = false;
+                    }
+                    updateDisplay();
+                }
+
+                setInterval(() => {
+                    if (isStale() && failCount === 0) refresh();
+                }, 60 * 1000);
+
+                window.addEventListener("online", () => {
+                    if (isStale()) refresh();
+                });
+
+                updateDisplay();
+                if (isStale()) await refresh();
+            },
+            todo: async (x, y, w, h) => {
+                var cell = makeWidget("todo", x, y, w, h);
+                var inner = cell.querySelector(".widget-inner");
+                inner.classList.add("widget-todo");
+
+                addStyle("style-todo", `
+                    .widget-todo {
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .widget-todo .todo-list {
+                        flex: 1;
+                        min-height: 0;
+                        overflow-x: hidden;
+                        overflow-y: auto;
+                    }
+
+                    .widget-todo .task-row {
+                        display: flex;
+                        align-items: flex-start;
+                        margin-bottom: 5px;
+                    }
+
+                    .widget-todo .task-text {
+                        flex: 1;
+                        min-width: 0;
+                        overflow-wrap: anywhere;
+                    }
+
+                    .widget-todo .task-check {
+                        appearance: none;
+                        -webkit-appearance: none;
+                        box-sizing: border-box;
+                        flex: 0 0 18px;
+                        width: 18px;
+                        height: 18px;
+                        padding: 0;
+                        margin: 2px 8px 0 0;
+                        border: 1px solid var(--h1);
+                        border-radius: 4px;
+                        background: var(--bg2);
+                        cursor: pointer;
+                        transition: background 0.15s;
+                    }
+
+                    .widget-todo .task-check:checked {
+                        background: var(--h1);
+                    }
+
+                    .widget-todo .task-check:focus-visible {
+                        outline: 2px solid var(--h1);
+                        outline-offset: 2px;
+                    }
+
+                    .widget-todo .task-text.done {
+                        text-decoration: line-through;
+                    }
+                `);
+
+                var topBar = document.createElement("div");
+                topBar.textContent = "To do list"
+                topBar.style.paddingBottom = "8px";
+                topBar.style.borderBottom = "1px solid var(--h1)";
+
+                var inputBar = document.createElement("div");
+                inputBar.style.display = "flex";
+                inputBar.style.gap = "4px";
+                inputBar.style.marginTop = "8px";
+                inputBar.style.marginBottom = "8px";
+
+                var taskInput = document.createElement("input");
+                taskInput.placeholder = "Task";
+                taskInput.style.flex = "1";
+                taskInput.style.minWidth = "0";
+                taskInput.style.width = "0";
+
+                var button = document.createElement("button");
+                button.textContent = "+";
+                button.style.width = "4ch";
+                button.style.flexShrink = "0";
+
+                function add() {
+                    if (!taskInput.value) return;
+
+                    state.tasks.push({
+                        checked: false,
+                        value: taskInput.value
+                    })
+
+                    taskInput.value = "";
+                }
+
+                taskInput.addEventListener("change", add);
+                button.addEventListener("click", add);
+
+                inputBar.appendChild(taskInput);
+                inputBar.appendChild(button);
+
+                 var list = document.createElement("div");
+                list.className = "todo-list";
+
+                if (!state.tasks) state.tasks = [];
+
+                function updateDisplay() {
+                    list.innerHTML = "";
+
+                    state.tasks.forEach((task, index) => {
+                        const e = document.createElement("div");
+                        e.className = "task-row";
+
+                        const check = document.createElement("input");
+                        check.type = "checkbox";
+                        check.className = "task-check";
+                        check.checked = task.checked;
+
+                        const item = document.createElement("span");
+                        item.className = "task-text" + (task.checked ? " done" : "");
+                        item.textContent = task.value;
+
+                        e.addEventListener("contextmenu", (event) => {
+                            event.preventDefault();
+                            showContextMenu([
+                                ["Remove", () => state.tasks.splice(index, 1)],
+                            ], event.clientX, event.clientY);
+                        });
+
+                        check.addEventListener("change", () => {
+                            task.checked = check.checked;
+                            item.classList.toggle("done", task.checked);
+                        });
+
+                        e.appendChild(check);
+                        e.appendChild(item);
+                        list.appendChild(e);
+                    });
+                }
+                onPropChange("tasks", updateDisplay);
+
+                updateDisplay();
+
+                inner.appendChild(topBar);
+                inner.appendChild(inputBar);
+                inner.appendChild(list);
+                
+            },
+            spotify: (x, y, w, h) => {
+                var cell = makeWidget("spotify", x, y, w, h);
+                var inner = cell.querySelector(".widget-inner");
+                inner.style.cssText += ";padding:0;display:flex;flex-direction:column;align-items: center; justify-content: center; gap: 10px;";
+
+                var TRACKS = `spotify:track:0RO9W1xJoUEpq5MEelddFb
+spotify:track:1KPuohcXPmJYQfdyg9zKmR
+spotify:track:4KcH1ZRV2W1q7Flq0QqC76
+spotify:track:4P5KoWXOxwuobLmHXLMobV
+spotify:track:61Q9oJNd9hJQFhSDh6Qlap
+spotify:track:57bgtoPSgt236HzfBOd8kj
+spotify:track:1uvyZBs4IZYRebHIB1747m
+spotify:track:5Th6EdNVhxp0TPX41ZLZk6
+spotify:track:3l9u6a1jn2naA3xYyT0WGe
+spotify:track:63T7DJ1AFDD6Bn8VzG6JE8
+spotify:track:70LcF31zb1H0PyJoS1Sx1r
+spotify:track:1Y373MqadDRtclJNdnUXVc
+spotify:track:0cKk8BKEi7zXbdrYdyqBP5
+spotify:track:5Ih9gbqyxCzTJ43nuSuKnC
+spotify:track:3gjHnylel3PTRpjS44ocqr
+spotify:track:2LawezPeJhN4AWuSB0GtAU
+spotify:track:2JiDi0qAXsPwhPqA2qaKGt
+spotify:track:40riOy7x9W7GXjyGp4pjAv
+spotify:track:3dPQuX8Gs42Y7b454ybpMR
+spotify:track:4jTqsgDaffdNH0BMBwhjFv
+spotify:track:3VqHuw0wFlIHcIPWkhIbdQ
+spotify:track:0ee1DiZF94NSqqpG0XHUzH
+spotify:track:1Lm6B6aXsBhcsxrimyhkJb
+spotify:track:0hCB0YR03f6AmQaHbwWDe8
+spotify:track:5SAUIWdZ04OxYfJFDchC7S
+spotify:track:6tZdL3Zp8JgrfDbsSeSV1S
+spotify:track:7dSCxR4LqkmxoBrq9MzVSD
+spotify:track:7ygpwy2qP3NbrxVkHvUhXY
+spotify:track:7snQQk1zcKl8gZ92AnueZW
+spotify:track:5FqYA8KfiwsQvyBI4IamnY
+spotify:track:31AOj9sFz2gM0O3hMARRBx
+spotify:track:1G391cbiT3v3Cywg8T7DM1
+spotify:track:4Yqy0GpeDEXLibWJCZyQew
+spotify:track:6cr6UDpkjEaMQ80OjWqEBQ
+spotify:track:2PzU4IB8Dr6mxV3lHuaG34
+spotify:track:1JSTJqkT5qHq8MDJnJbRE1
+spotify:track:1J5XEPamp7iQaCU0aFuMnd
+spotify:track:5UWwZ5lm5PKu6eKsHAGxOk
+spotify:track:5RKQ5NdjSh2QzD4MaunT91
+spotify:track:0u6JFVn0KHHlidZxNL9gVE
+spotify:track:6zeE5tKyr8Nu882DQhhSQI
+spotify:track:5LNiqEqpDc8TuqPy79kDBu
+spotify:track:1lqMLr9Wj7SM2F9AikGcxN
+spotify:track:0X1sqQ652p1sceKM2nJlIJ
+spotify:track:4JRem7xHp2l0kmUvt9zCKu
+spotify:track:4gMgiXfqyzZLMhsksGmbQV
+spotify:track:4BP3uh0hFLFRb5cjsgLqDh
+spotify:track:5ghIJDpPoe3CfHMGu71E6T
+spotify:track:3q9npStSssk7sZWotiNQLK
+spotify:track:1QEEqeFIZktqIpPI4jSVSF
+spotify:track:14XWXWv5FoCbFzLksawpEe
+spotify:track:6L89mwZXSOwYl76YXfX13s
+spotify:track:0dOg1ySSI7NkpAe89Zo0b9
+spotify:track:2nrG5UtAcqXbYttu7MXP1p
+spotify:track:3gdewACMIVMEWVbyb8O9sY
+spotify:track:7e89621JPkKaeDSTQ3avtg
+spotify:track:3b7wNR330iKhql9dEdbNci
+spotify:track:58XWGx7KNNkKneHdprcprX
+spotify:track:5EWPGh7jbTNO2wakv8LjUI
+spotify:track:18AXbzPzBS8Y3AkgSxzJPb
+spotify:track:0S3gpZzlT9Hb7CCSV2owX7
+spotify:track:57iDDD9N9tTWe75x6qhStw
+spotify:track:2EqlS6tkEnglzr7tkKAAYD
+spotify:track:7irAVPceAl8NQLrEu7meOF
+spotify:track:3dmqIB2Qxe2XZobw9gXxJ6
+spotify:track:0upLyFR8Rr52ZpMp5esQoq
+spotify:track:0bRNszTbTFLNlunAeh7eom
+spotify:track:5e9TFTbltYBg2xThimr0rU
+spotify:track:2HXixVqzzm9rEUIMAWzshl
+spotify:track:6QewNVIDKdSl8Y3ycuHIei
+spotify:track:4YMQXzscifAREG0a7KNGhB
+spotify:track:0emHuukZSuaOzOlsAWHj2W
+spotify:track:3d9DChrdc6BOeFsbrZ3Is0
+spotify:track:2K2M0TcglCRLLpFOzKeFZA
+spotify:track:1gzIbdFnGJ226LTl0Cn2SX
+spotify:track:2SiXAy7TuUkycRVbbWDEpo
+spotify:track:45Ia1U4KtIjAPPU7Wv1Sea
+spotify:track:2kkvB3RNRzwjFdGhaUA0tz
+spotify:track:78lgmZwycJ3nzsdgmPPGNx
+spotify:track:7wCmS9TTVUcIhRalDYFgPy
+spotify:track:2zYzyRzz6pRmhPzyfMEC8s
+spotify:track:2EoOZnxNgtmZaD8uUmz2nD
+spotify:track:1OxcIUqVmVYxT6427tbhDW
+spotify:track:54bm2e3tk8cliUz3VSdCPZ
+spotify:track:58z9sfHe9s9zTvYGKehCWM
+spotify:track:6FsQrRpBLgsrFeAeiQqytm
+spotify:track:1mfV2kv9RwFKVI8kEQlmOJ
+spotify:track:1gcESexgftSuLuML57Y69q
+spotify:track:0G21yYKMZoHa30cYVi1iA8
+spotify:track:3IOQZRcEkplCXg6LofKqE9
+spotify:track:64ywvJE5j3PmRHzuah2WKR
+spotify:track:0cJPLFrlV7TTCyPLupHzcH
+spotify:track:5DrNFzZZZVfXaEZCaceKnp
+spotify:track:1oYYd2gnWZYrt89EBXdFiO
+spotify:track:4kFDcNuEXF7xArUklWSKF2
+spotify:track:6gXrEUzibufX9xYPk3HD5p
+spotify:track:2N2yrmodOnVF10mKvItC9P
+spotify:track:18OMrZoyyZuVy06FttIFhq
+spotify:track:20OFwXhEXf12DzwXmaV7fj
+spotify:track:4KfSdst7rW39C0sfhArdrz
+spotify:track:4VqPOruhp5EdPBeR92t6lQ
+spotify:track:1HOMkjp0nHMaTnfAkslCQj
+spotify:track:1nFtiJxYdhtFfFtfXBv06s
+spotify:track:3qT4bUD1MaWpGrTwcvguhb
+spotify:track:1fDsrQ23eTAVFElUMaf38X
+spotify:track:4MYb7NWLwXNDB7bYs3HeX8
+spotify:track:2RlgNHKcydI9sayD2Df2xp
+spotify:track:4DMKwE2E2iYDKY01C335Uw
+spotify:track:2aoo2jlRnM3A0NyLQqMN2f
+spotify:track:39shmbIHICJ2Wxnk1fPSdz
+spotify:track:0pQskrTITgmCMyr85tb9qq
+spotify:track:4nuUssdgKFy2QyYHHNkZQW
+spotify:track:59WN2psjkt1tyaxjspN8fp
+spotify:track:3QZ7uX97s82HFYSmQUAN1D
+spotify:track:6pPWRBubXOBAHnjl5ZIujB
+spotify:track:3RZMzCvYsmJ0u2ioKTOsmJ
+spotify:track:5PntSbMHC1ud6Vvl8x56qd
+spotify:track:11LmqTE2naFULdEP94AUBa
+spotify:track:254bXAqt3zP6P50BdQvEsq
+spotify:track:0vFOzaXqZHahrZp6enQwQb
+spotify:track:1bp2IO61zbQrbWNmKKxg3f
+spotify:track:5p3JunprHCxClJjOmcLV8G
+spotify:track:3EYOJ48Et32uATr9ZmLnAo
+spotify:track:5QTxFnGygVM4jFQiBovmRo
+spotify:track:2RaA6kIcvomt77qlIgGhCT
+spotify:track:08mG3Y1vljYA6bvDt4Wqkj
+spotify:track:5uvosCdMlFdTXhoazkTI5R
+spotify:track:4nXkbcTj3nyww1cHkw5RAP
+spotify:track:4pbG9SUmWIvsROVLF0zF9s
+spotify:track:2374M0fQpWi3dLnB54qaLX
+spotify:track:1FTSo4v6BOZH9QxKc3MbVM
+spotify:track:3439OLNIeD3y68kVuoZUO5
+spotify:track:0NWPxcsf5vdjdiFUI8NgkP
+spotify:track:1pXgBjIvALm97lDhroan2E
+spotify:track:6eN1f9KNmiWEhpE2RhQqB5
+spotify:track:0uppYCG86ajpV2hSR3dJJ0
+spotify:track:1qRA5BS78u3gME0loMl9AA
+spotify:track:7Jh1bpe76CNTCgdgAdBw4Z
+spotify:track:6sby78fghipoXHQLeeZFFH
+spotify:track:05NYcsjJwOYq4jIiKPVj9p
+spotify:track:4WG7Z3bNM3iE4vCYcXsxNx
+spotify:track:5eU8qMd0TpaLqTGDZJaLDs
+spotify:track:0PdM2a6oIjqepoEfcJo0RO
+spotify:track:6ToM0uwxtPKo9CMpbPGYvM
+spotify:track:4Q3ERWBrb4lhDvAPyANjY5
+spotify:track:4vO9dmzNRqDhFY3jD1a3P7
+spotify:track:6VoIBz0VhCyz7OdEoRYDiA
+spotify:track:1xKQbqQtQWrtQS47fUJBtl
+spotify:track:7b4yGtR0rujvLi5EBfKKJ2
+spotify:track:1GqlvSEtMx5xbGptxOTTyk
+spotify:track:6NvRxjfYkkT2SpirAlmsjH
+spotify:track:003vvx7Niy0yvhvHt4a68B
+spotify:track:6FMIVQPZg9cmMY8hPxAacD
+spotify:track:4alHo6RGd0D3OUbTPExTHN
+spotify:track:1Buwv1iql0YsxftE5LHIgq
+spotify:track:07GvNcU1WdyZJq3XxP0kZa
+spotify:track:3qiyyUfYe7CRYLucrPmulD
+spotify:track:3qLZ866ZfaK0B0R5FIqXLG
+spotify:track:4qgZs0RNjdzKAS22lP0QjY
+spotify:track:5QLHGv0DfpeXLNFo7SFEy1
+spotify:track:43DeSV93pJPT4lCZaWZ6b1
+spotify:track:6txWz9UapYHVxEd7dDIHXT
+spotify:track:5tVA6TkbaAH9QMITTQRrNv
+spotify:track:1CM1wOqD2AIjt2MWd31LV2
+spotify:track:0vOkmmJEtjuFZDzrQSFzEE
+spotify:track:0Puj4YlTm6xNzDDADXHMI9
+spotify:track:5jzma6gCzYtKB1DbEwFZKH
+spotify:track:21YxK0klhpfLW8budkJaMF
+spotify:track:7oxSfM3FXCdw7EXNreNoRz
+spotify:track:4cMHCRLPNoEbpnl2rz6GS9
+spotify:track:3KPwt1LBpt1jVSHz8GXERo
+spotify:track:6GtX0jaNL8IjVQfrDBx81z
+spotify:track:4PJEK76V3A1S0XzZJuTWh7
+spotify:track:5OQsiBsky2k2kDKy2bX2eT
+spotify:track:669cOBjpY4Y5O98Nmk6139
+spotify:track:4c4jJJoaiY21t2TyRZgdWS
+spotify:track:5zH710lFSLtkHbMkslLDjR
+spotify:track:6ORqU0bHbVCRjXm9AjyHyZ
+spotify:track:1L94M3KIu7QluZe63g64rv
+spotify:track:2eDdFHgqNJltzlvlZFVDWd
+spotify:track:4e9hUiLsN4mx61ARosFi7p
+spotify:track:6H3kDe7CGoWYBabAeVWGiD
+spotify:track:0wJoRiX5K5BxlqZTolB2LD
+spotify:track:5Z8EDau8uNcP1E8JvmfkZe
+spotify:track:73TxYZd0lBCVRrHawrAglA
+spotify:track:12yHvSYFXI7PGzNecUvIDu
+spotify:track:6qLEOZvf5gI7kWE63JE7p3
+spotify:track:4U45aEWtQhrm8A5mxPaFZ7
+spotify:track:6hTcuIQa0sxrrByu9wTD7s
+spotify:track:05RgAMGypEvqhNs5hPCbMS
+spotify:track:0nFKHCf1Ibij8m370l2KlZ
+spotify:track:1QaJWSCk3UMKLotnPCIHh1
+spotify:track:0Nux6Q8aJZ1i4vUpPDBvlX
+spotify:track:5o37x6LpNSec4jSfPIChsQ
+spotify:track:5h6SovHOYpIMlAkafxcbq3
+spotify:track:5AoZknxgY6F25gAcVahO41
+spotify:track:3SUusuA9jH1v6PVwtYMbdv
+spotify:track:38Ngied9rBORlAbLYNCl4k
+spotify:track:5sFDReWLrZHLFZFjHsjUTS`.split("\n");
+
+                if (!state.music) state.music = {};
+                var m = state.music;
+                if (TRACKS.indexOf(m.track) < 0) { m.track = TRACKS[0]; m.position = 0; }
+
+                var mount = document.createElement("div");
+                mount.style.cssText = "flex:1; min-height:0; position:relative;";
+                inner.appendChild(mount);
+
+                var bar = document.createElement("div");
+                bar.style.cssText = "flex:none; display:flex; align-items:center; justify-content:center; gap:12px; padding:4px;";
+                bar.innerHTML =
+                    '<button class="sp-prev">⏮</button>' +
+                    '<span class="sp-count" style="font-size:.8em;opacity:.7"></span>' +
+                    '<button class="sp-next">⏭</button>';
+                inner.appendChild(bar);
+
+                var count = bar.querySelector(".sp-count");
+                function updateCount() {
+                    count.textContent = (TRACKS.indexOf(m.track) + 1) + " / " + TRACKS.length;
+                }
+                updateCount();
+
+                loadSpotifyApi().then(IFrameAPI => {
+                    IFrameAPI.createController(
+                        mount,
+                        { uri: m.track, width: "90%", height: "50%", theme: 0 },
+                        controller => {
+                            var lastSave = 0;
+                            var wasPlaying = false;
+                            var latest = null;
+                            var restoredOnce = false;
+                            var endHandled = false;
+                            var ignoreUntil = 0;
+
+                            function savePosition(d) {
+                                if (!d || !d.position) return;
+                                m.position = d.position;
+                            }
+
+                            function restore() {
+                                if (restoredOnce) return;
+                                restoredOnce = true;
+                                var secs = Math.floor((m.position || 0) / 1000);
+                                console.log("music restore", m.track, secs);
+                                if (secs > 0) {
+                                    ignoreUntil = Date.now() + 1500;
+                                    controller.loadUri(m.track, false, secs);
+                                }
+                            }
+                            controller.addListener("ready", restore);
+                            setTimeout(restore, 2500);
+
+                            function select(uri) {
+                                m.track = uri;
+                                m.position = 0;
+                                m.playing = true;
+                                endHandled = false;
+                                wasPlaying = false;
+                                lastSave = Date.now();
+                                ignoreUntil = Date.now() + 1500;
+                                updateCount();
+                                controller.loadUri(uri);
+                                controller.play();
+                            }
+
+                            function go(step) {
+                                var i = TRACKS.indexOf(m.track);
+                                select(TRACKS[(i + step + TRACKS.length) % TRACKS.length]);
+                            }
+
+                            bar.querySelector(".sp-next").onclick = () => go(1);
+                            bar.querySelector(".sp-prev").onclick = () => go(-1);
+
+                            var unpausedBefore = false;
+
+                            controller.addListener("playback_update", e => {
+                                var d = e.data;
+                                if (!d || Date.now() < ignoreUntil) return;
+                                latest = d;
+
+                                var unpaused = !d.isPaused;
+                                if (unpaused && !m.playing) m.playing = true;
+                                else if (!unpaused && unpausedBefore) m.playing = false;
+                                unpausedBefore = unpaused;
+
+                                var playingNow = !d.isPaused && !d.isBuffering;
+
+                                if (playingNow) {
+                                    var now = Date.now();
+                                    if (now - lastSave > 3000) { lastSave = now; savePosition(d); }
+                                } else if (wasPlaying) {
+                                    savePosition(d);
+                                }
+                                wasPlaying = playingNow;
+
+                                if (!endHandled && d.duration && d.position > 0 &&
+                                    d.position >= d.duration - 500) {
+                                    endHandled = true;
+                                    go(1);
+                                }
+                            });
+
+                            window.addEventListener("pagehide", () => {
+                                if (wasPlaying && latest) savePosition(latest);
+                            });
+
+                            function resumeOnce() {
+                                document.removeEventListener("pointerdown", resumeOnce);
+                                document.removeEventListener("keydown", resumeOnce);
+                                if (m.playing) controller.resume();
+                            }
+                            document.addEventListener("pointerdown", resumeOnce);
+                            document.addEventListener("keydown", resumeOnce);
+                        }
+                    );
+                });
+            },
+            notes: (x, y, w, h) => {
+                var cell = makeWidget("notes", x, y, w, h);
+                var inner = cell.querySelector(".widget-inner");
+                inner.classList.add("widget-notes");
+
+                addStyle("style-notes", `
+                    .widget-notes {
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .widget-notes textarea {
+                        flex: 1;
+                        min-height: 0;
+                        height: auto;
+                        margin: 0;
+                        resize: none;
+                        padding: 10px;
+                        font: inherit;
+                    }
+
+                    .widget-notes textarea:hover,
+                    .widget-notes textarea:focus {
+                        outline: none;
+                        border-color: var(--select);
+                    }
+                `);
+
+                var topBar = document.createElement("div");
+                topBar.textContent = "Notes";
+                topBar.style.paddingBottom = "8px";
+                topBar.style.marginBottom = "8px";
+                topBar.style.borderBottom = "1px solid var(--h1)";
+
+                var notes = document.createElement("textarea");
+                notes.placeholder = "Write something...";
+                notes.value = state.notes || "";
+
+                notes.addEventListener("input", () => {
+                    state.notes = notes.value;
+                });
+
+                // stay in sync if another tab edits the notes
+                onPropChange("notes", (value) => {
+                    if (notes.value !== (value ?? "")) notes.value = value ?? "";
+                });
+
+                inner.appendChild(topBar);
+                inner.appendChild(notes);
+            },
+        };
+
+        const BASE_CONFIG = {
+            searchEngine: "google",
+            shortcuts: [
+                {
+                    url: "https://google.com",
+                },
+                {
+                    url: "https://youtube.com",
+                },
+                {
+                    url: "https://mail.google.com",
+                },
+                {
+                    url: "https://terra.hackclub.com",
+                }
+            ],
+            theme: "sunset",
+            grid: {
+                width: 10,
+                height: 5
+            },
+            widgets: [
+                {
+                    type: "clock",
+                    pos: [0, 0],
+                    size: [1, 1],
+                },
+                {
+                    type: "timer",
+                    pos: [1, 0],
+                    size: [1, 1]
+                },
+                {
+                    type: "weather",
+                    pos: [0, 4],
+                    size: [2, 1]
+                },
+                {
+                    type: "notes",
+                    pos: [0, 2],
+                    size: [2, 2]
+                },
+                {
+                    type: "todo",
+                    pos: [8, 3],
+                    size: [2, 2]
+                },
+                {
+                    type: "spotify",
+                    pos: [7, 0],
+                    size: [3, 1]
+                }
+            ]
+        }
+
+        if (!state.config) state.config = BASE_CONFIG;
+
+        var shortcuts = [];
+
+        async function getWebsiteFavicon(u) {
+            return `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(u)}&sz=32`;
+        }
+
+        async function initShortcuts() {
+            for (var i of state.config.shortcuts) {
+                var url = '';
+
+                if (i.icon === 1 || (i.icon === undefined)) {
+                    url = await getWebsiteFavicon(i.url);
+                } else {
+                    url = i.icon;
+                }
+
+                const s = document.createElement("div");
+                s.className = "shortcut";
+
+                if (!i.id) i.id = Math.round(Math.random() * (10 ** 12));
+                
+                s.dataset.id = i.id;
+
+                s.addEventListener("contextmenu", (event) => {
+                    event.preventDefault();
+                    showContextMenu([
+                        ["Remove", () => {
+                            state.config.shortcuts = state.config.shortcuts.filter(e => e.id !== i.id);
+                            location.reload();
+                        }],
+                    ], event.clientX, event.clientY);
+                });
+
+                const link = document.createElement("a");
+                link.href = i.url;
+
+                const image = document.createElement("img");
+                image.width = 32;
+                image.height = 32;
+                image.src = url;
+
+                link.appendChild(image);
+                s.appendChild(link);
+
+                shortcutsBox.appendChild(s);
+            }
+
+            var add = document.createElement("button");
+            add.innerHTML = "&plus;"
+            add.style.border = "none";
+            add.style.background = "transparent";
+            add.style.color = "var(--h1)";
+            add.style.fontSize = "30px";
+            add.classList.add("color-change-highlight");
+
+            add.addEventListener("click", () => {
+                var url = prompt("Enter a url: ");
+                if (!url) return;
+                state.config.shortcuts.push({ url: url, id: Math.round(Math.random() * (10 ** 12)) });
+                location.reload();
+            });
+            
+            shortcutsBox.appendChild(add);
+
+        }
+
+        searchEnginesSelect.addEventListener("change", () => {
+            state.config.searchEngine = searchEnginesSelect.value;
+            configSearch();
+        });
+
+        function configSearch() {
+            const engine = searchEngines[searchEnginesSelect.value];
+            searchForm.setAttribute("action", engine.search.path);
+            searchInput.setAttribute("name", engine.search.searchParam);
+            firstResultBtn.style.display = engine.lucky ? "" : "none";
+        }
+
+        function firstResult() {
+            const q = searchInput.value.trim();
+            if (!q) return;
+
+            const engine = searchEngines[searchEnginesSelect.value];
+            const lucky = engine.lucky || searchEngines.google.lucky;
+
+            window.location.href = lucky(q);
+        }
+
+        function buildSearchUrl(q) {
+            const cfg = searchEngines[searchEnginesSelect.value].search;
+            const url = new URL(cfg.path);
+            url.searchParams.set(cfg.searchParam, q);
+            return url.toString();
+        }
+
+        function inNewTab() {
+            const q = searchInput.value.trim();
+            if (!q) return;
+
+            window.open(buildSearchUrl(q), "_blank", "noopener");
+        }
+
+        function initSearch() {            
+            for (var i of Object.keys(searchEngines)) {
+                var option = document.createElement("option");
+                option.textContent = searchEngines[i].name;
+                option.value = i;
+
+                searchEnginesSelect.appendChild(option);
+            }
+
+            searchEnginesSelect.value = state.config.searchEngine || "google";
+
+            configSearch();
+
+            searchInput.addEventListener("keydown", e => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    firstResult();
+                }
+            });
+        }
+
+        function initTheme() {
+            document.documentElement.dataset.theme = state.config.theme || "navy";
+        }
+
+        function initGrid() {
+            var { width, height } = state.config.grid;
+
+            if (!width) width = 10;
+            if (!height) height = 6;
+
+            grid = document.createElement("table");
+            grid.className = "widget-grid";
+
+            for (var row = 0; row < height; row++) {
+                const tr = document.createElement("tr");
+
+                tr.style.height = `${100 / height}%`;
+
+                for (var col = 0; col < width; col++) {
+                    const td = document.createElement("td");
+
+                    td.dataset.x = col;
+                    td.dataset.y = row;
+
+                    tr.appendChild(td);
+                }
+
+                grid.appendChild(tr);
+            }
+
+            console.log(grid);
+
+            document.querySelector("body").appendChild(grid);
+
+            function cellFrom(event) {
+                return event.target.closest("td");
+            }
+
+            grid.addEventListener("dragover", (event) => {
+                if (cellFrom(event)) event.preventDefault();
+            });
+
+            grid.addEventListener("drop", (event) => {
+                var td = cellFrom(event);
+                if (!td) return;
+                event.preventDefault();
+
+                var id = event.dataTransfer.getData("text/plain");
+                var widget = widgets[id];
+                if (!widget) return;
+
+                var x = Number(td.dataset.x);
+                var y = Number(td.dataset.y);
+                if (Number.isNaN(x) || Number.isNaN(y)) return;
+
+                var prevX = widget.x;
+                var prevY = widget.y;
+
+                if (!putWidgetAt(id, x, y)) return;
+
+                var entry = state.config.widgets.find(c =>
+                    c.type === widget.type && c.pos[0] === prevX && c.pos[1] === prevY
+                );
+                if (entry) entry.pos = [x, y];
+            });
+
+            for (var i of state.config.widgets) {
+                try {
+                    if (!WIDGETS[i.type]) console.warn("Invalid widget:", i.type);
+                    WIDGETS[i.type](...(i.pos), ...(i.size));
+                } catch (e) {
+                    console.log(e.name);
+                    console.warn("Failed to put down widget of type:", i.type, ". Error:", e);
+                }
+            }
+
+            onPropChange("config.widgets", () => {
+                location.reload();
+            })
+        }
+
+        function queryGrid(x, y) {
+            return grid?.children[y]?.children[x];
+        }
+
+        function ordinal(n) {
+            const s = ["th", "st", "nd", "rd"];
+            const v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
+
+        function updateTime() {
+            const now = new Date();
+
+            const hours = now.getHours() % 12 || 12;
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            bigTime.textContent = `${hours}:${minutes}`;
+
+            weekDay.textContent =
+                now.toLocaleDateString("en-US", { weekday: "long" });
+
+            const month = now.toLocaleDateString("en-US", { month: "long" });
+            dateReadable.textContent =
+                `${month} ${ordinal(now.getDate())}`;
+
+            const ampm = now.getHours() >= 12 ? "PM" : "AM";
+            timeHalf.textContent = ampm;
+
+            topTime.textContent = `${hours}:${minutes} ${ampm}`;
+
+            dateNumbers.textContent =
+                now.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "2-digit" });
+        }
+
+        function openSettings() {
+            settingsOverlay.hidden = false;
+            settings.hidden = false;
+        }
+        
+        function closeSettings() {
+            settingsOverlay.hidden = true;
+            settings.hidden = true;
+        }
+
+        function initSettingsMenu() {
+            settingsButton.addEventListener("click", openSettings);
+
+            for (const [key, name] of Object.entries(themes)) {
+                const box = document.createElement("div");
+                box.className = "themeSelectorTheme";
+                box.dataset.theme = key;
+
+                const swatch = document.createElement("div");
+                swatch.className = "swatch";
+
+                const label = document.createElement("span");
+                label.textContent = name;
+
+                box.append(swatch, label);
+                box.addEventListener("click", () => {
+                    state.config.theme = key;
+                });
+
+                themeSelector.appendChild(box);
+            }
+
+            function markSelected() {
+                const current = state.config.theme || "navy";
+                for (const box of themeSelector.children) {
+                    box.classList.toggle("selected", box.dataset.theme === current);
+                }
+            }
+
+            onPropChange("config.theme", () => {
+                initTheme();
+                markSelected();
+            });
+            markSelected();
+        }
+
+        initTheme();
+        initGrid();
+        initSearch();
+        initShortcuts();
+        initSettingsMenu();
+
+        setInterval(updateTime, 500);
+        updateTime();
+    </script>
+</body>
+</html>
