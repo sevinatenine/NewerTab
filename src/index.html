@@ -49,6 +49,17 @@
             --gap: 12px;
             --select: rgb(255, 214, 153);
         }
+
+        [data-theme="cyberpunk"] {
+            --bg: rgb(19, 12, 35);
+            --bg2: rgb(43, 25, 68);
+            --h1: rgb(255, 75, 190);
+            --font: rgb(235, 225, 255);
+            --family: "Arial", sans-serif;
+            --borderRadius: 8px;
+            --gap: 12px;
+            --select: rgb(0, 230, 255);
+        }
         
         body {
             margin: 0;
@@ -320,7 +331,7 @@
 
         #settings {
             box-sizing: border-box;
-            width: min(600px, 90vw);
+            width: min(800px, 90vw);
             height: 50vh;
             padding: 20px;
             overflow-y: auto;
@@ -529,7 +540,6 @@
         const exportCopy = document.getElementById("exportCopy");
 
         const importElem = document.getElementById("import");
-        // const importPaste = document.getElementById("importPaste");
         const importButton = document.getElementById("importButton");
         const importMessage = document.getElementById("importMessage");
 
@@ -572,7 +582,7 @@
             }
 
             const c = data.config;
-            if (c === undefined) return null; // falls back to BASE_CONFIG
+            if (c === undefined) return null;
 
             if (!c || typeof c !== "object") return "config must be an object.";
             if (!c.grid || typeof c.grid !== "object") return "config.grid is missing.";
@@ -606,7 +616,7 @@
 
             if (!confirm("Replace all current settings with the imported data?")) return;
 
-            frozen = true; // stop background writes from clobbering the import
+            frozen = true;
             localStorage.setItem(STATE_KEY, JSON.stringify(data));
             location.reload();
         });
@@ -718,7 +728,8 @@
             navy: "Navy",
             sunset: "Sunset",
             terminal: "Terminal",
-            amberTerminal: "Amber Terminal"
+            amberTerminal: "Amber Terminal",
+            cyberpunk: "Cyberpunk"
         };
 
         var widgets = {};
@@ -752,11 +763,6 @@
         function exportState() {
             exportElem.value = JSON.stringify(state, null, 4);
         }
-
-        // function saveState(s) {
-        //     exportState();
-        //     localStorage.setItem(STATE_KEY, JSON.stringify(s));
-        // }
 
         function getPath(obj, path) {
             return path.split(".").reduce((o, k) => o?.[k], obj);
@@ -1998,7 +2004,6 @@ spotify:track:5sFDReWLrZHLFZFjHsjUTS`.split("\n");
                     state.notes = notes.value;
                 });
 
-                // stay in sync if another tab edits the notes
                 onPropChange("notes", (value) => {
                     if (notes.value !== (value ?? "")) notes.value = value ?? "";
                 });
