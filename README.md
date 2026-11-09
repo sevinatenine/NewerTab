@@ -1,6 +1,6 @@
 # NewerTab
 
-NewerTab is a new design for the chrome://newtab page. I do not like the default page and I decided to redesign it. It now has a search engine selector, movable widgets and themes!
+NewerTab is a new design for the chrome://newtab page. NewerTab has a search engine selector, a search bar, and multiple movable widgets with customizable themes! It is a website built in HTML, JS and CSS. I do not like the default chrome new tab and it's lack of features and this inspired me to make a custom one. I plan to make chrome extension in the future.
 
 You can try it at [newertab.vercel.app](https://newertab.vercel.app/).
 
